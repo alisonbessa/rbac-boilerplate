@@ -4,10 +4,10 @@
 
 ## M0 — Base, Estrutura e DX
 
-- [ ] Configurar monorepo com pnpm workspaces + Turborepo
-  - [ ] `package.json` raiz com workspaces e scripts (`dev:all`, `lint`, `typecheck`, `build`, `test`, `e2e`)
-  - [ ] `turbo.json` com pipelines (lint, typecheck, build, test)
-  - [ ] Estrutura de pastas exata conforme `docs/REQUIREMENTS.md` (diretórios `apps/web`, `apps/api`, `packages/*`, `infra`, `.github`)
+- [x] Configurar monorepo com pnpm workspaces + Turborepo
+  - [x] `package.json` raiz com workspaces e scripts (`dev:all`, `lint`, `typecheck`, `build`, `test`, `e2e`)
+  - [x] `turbo.json` com pipelines (lint, typecheck, build, test)
+  - [x] Estrutura de pastas exata conforme `docs/REQUIREMENTS.md` (diretórios `apps/web`, `apps/api`, `packages/*`, `infra`, `.github`)
 - [ ] Configurações compartilhadas em `packages/config`
   - [ ] ESLint + Prettier + tsconfig base
   - [ ] Commitlint + Husky (pre-commit: lint+typecheck; commit-msg: commitlint)
