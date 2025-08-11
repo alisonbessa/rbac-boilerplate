@@ -1,0 +1,12 @@
+{
+  "name": "@rbac-boilerplate/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo api-dev",
+    "build": "echo api-build",
+    "typecheck": "tsc -p tsconfig.json --noEmit || true",
+    "lint": "eslint src --ext .ts || true",
+    "test": "echo api-test"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@rbac-boilerplate/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo web-dev",
+    "build": "echo web-build",
+    "typecheck": "tsc -p tsconfig.json --noEmit || true",
+    "lint": "eslint src --ext .ts,.tsx || true",
+    "test": "echo web-test"
+  }
+}

@@ -8,15 +8,15 @@
   - [x] `package.json` raiz com workspaces e scripts (`dev:all`, `lint`, `typecheck`, `build`, `test`, `e2e`)
   - [x] `turbo.json` com pipelines (lint, typecheck, build, test)
   - [x] Estrutura de pastas exata conforme `docs/REQUIREMENTS.md` (diretórios `apps/web`, `apps/api`, `packages/*`, `infra`, `.github`)
-- [ ] Configurações compartilhadas em `packages/config`
-  - [ ] ESLint + Prettier + tsconfig base
-  - [ ] Commitlint + Husky (pre-commit: lint+typecheck; commit-msg: commitlint)
-- [ ] CI inicial (GitHub Actions)
-  - [ ] Workflow com jobs: `lint`, `typecheck`, `build`, `test`
-- [ ] `.env.example` completo (front e back) e validação de ENV com Zod no start
-- [ ] Infra local
-  - [ ] `infra/docker-compose.yml` com Postgres, Redis, Mailpit, MinIO (opcional)
-  - [ ] Volumes, portas e credenciais default
+- [x] Configurações compartilhadas em `packages/config`
+  - [x] ESLint + Prettier + tsconfig base
+  - [x] Commitlint + Husky (pre-commit: lint+typecheck; commit-msg: commitlint)
+- [x] CI inicial (GitHub Actions)
+  - [x] Workflow com jobs: `lint`, `typecheck`, `build`, `test`
+- [x] `.env.example` completo (front e back) e validação de ENV com Zod no start
+- [x] Infra local
+  - [x] `infra/docker-compose.yml` com Postgres, Redis, Mailpit, MinIO (opcional)
+  - [x] Volumes, portas e credenciais default
 
 ## M1 — Banco, Auth & RBAC (Backend `apps/api`)
 

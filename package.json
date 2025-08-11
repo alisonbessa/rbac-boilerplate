@@ -12,12 +12,13 @@
   ],
   "scripts": {
     "dev:all": "turbo run dev --parallel",
-    "lint": "eslint --max-warnings=0 --ext .ts,.tsx apps packages",
+    "lint": "eslint --max-warnings=0 --no-error-on-unmatched-pattern --ext .ts,.tsx packages apps",
     "typecheck": "turbo run typecheck",
     "build": "turbo run build",
     "test": "turbo run test",
     "e2e": "turbo run e2e",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "commitlint": "commitlint --config .commitlintrc.cjs"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",
     "@commitlint/config-conventional": "^19.2.2",
+    "@types/node": "20",
     "@typescript-eslint/eslint-plugin": "^7.16.1",
     "@typescript-eslint/parser": "^7.16.1",
     "dotenv": "^16.4.5",
