@@ -2,6 +2,22 @@
 
 > Objetivo: concluir o boilerplate conforme as especificações. As tarefas estão ordenadas por marcos (M0..M6) e incluem entregáveis, scripts e critérios de aceite.
 
+### Ordem e dependências
+
+- M0 → M1 → M2 → M3 → M4 → M5 → M6 (opcional)
+- M1 (Backend Auth/RBAC) depende de M0 (base/infra/CI).
+- M2 (Fingerprint & Sessões) depende de M1 (auth/sessões básicas).
+- M3 (Frontend) depende de M1 e M2 para integrar login/refresh/sessões. Evitar iniciar integrações do M3 antes de M1+M2 estarem mínimas.
+- M4 (Flags & Email) depende de M1 (auth) e do pacote de config do M0 (ENV).
+- M5 (Storage) depende de M1 (API) e do compose do M0.
+- M6 (Observabilidade opcional) pode vir após M5.
+
+### Regras de execução
+
+- Commits por tarefa maior (mensagens em inglês, Conventional Commits).
+- Ao concluir uma tarefa/subtarefa, marcar como concluída.
+- Não antecipar tarefas de marcos posteriores; apenas scaffolding mínimo quando comprovadamente necessário.
+
 ## M0 — Base, Estrutura e DX
 
 - [x] Configurar monorepo com pnpm workspaces + Turborepo
@@ -19,6 +35,8 @@
   - [x] Volumes, portas e credenciais default
 
 ## M1 — Banco, Auth & RBAC (Backend `apps/api`)
+
+Dependências: M0
 
 - [ ] Configurar Fastify (Node 20+, Pino, CORS restrito, headers de segurança)
 - [ ] Drizzle ORM + Postgres
@@ -46,12 +64,16 @@
 
 ## M2 — Fingerprint de Dispositivo & Sessões
 
+Dependências: M1
+
 - [ ] Vincular refresh a `(userId + deviceId)`
 - [ ] Cookie httpOnly assinado `did` no login
 - [ ] Validar `X-Device-Id` vs cookie `did` e sessão (negar se divergente ou revogada)
 - [ ] Listar e revogar sessões por usuário
 
 ## M3 — Frontend `apps/web`
+
+Dependências: M1 e M2
 
 - [ ] Vite + React + TypeScript (strict), TanStack Router + Query
 - [ ] UI base: shadcn/ui (Button, Input, Label, Card, Tabs, Dialog, DropdownMenu, Toast, Skeleton, DataTable)
@@ -66,6 +88,8 @@
 
 ## M4 — Feature Flags & E-mails
 
+Dependências: M1
+
 - [ ] Adapter de flags (interface comum `getFlag(key, ctx?)`)
   - [ ] Provider default: Flagsmith; preparar Statsig/Unleash via ENV
   - [ ] Cache curto (60s) + fallback default
@@ -74,6 +98,8 @@
   - [ ] Templates em `packages/emails` (ex.: reset de senha; login de novo dispositivo)
 
 ## M5 — Storage S3-compatível
+
+Dependências: M1
 
 - [ ] Adapter S3 com funções:
   - [ ] `getPresignedUploadUrl(bucket, key, contentType)`
@@ -84,10 +110,14 @@
 
 ## M6 — Observabilidade Intermediária (Opcional)
 
+Dependências: M0 (base) — recomendado após M5
+
 - [ ] OpenTelemetry (Fastify auto-instrumentation) + exporter OTLP
 - [ ] Stack local opcional (Prometheus, Loki, Tempo, Grafana) comentada no compose
 
 ## CLI de Scaffold (Backend) e Geradores (Frontend)
+
+Dependências: M1 (para gerar resources sobre o backend já configurado)
 
 - [ ] CLI `pnpm gen:resource` em `scripts/gen/resource.ts`
   - [ ] Parâmetros: `--name users` e `--fields "name:string,email:string:unique,active:boolean"`
