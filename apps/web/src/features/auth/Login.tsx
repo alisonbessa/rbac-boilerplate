@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { apiFetch } from '../../lib/apiClient';
+import { useAuth } from './AuthContext';
+import { useNavigate } from '@tanstack/react-router';
+import { sha256Hex } from '../../lib/crypto';
 
 export function LoginForm() {
   const [email, setEmail] = useState('pro@example.com');
   const [password, setPassword] = useState('password123');
-  const [deviceId, setDeviceId] = useState('device-123');
   const [message, setMessage] = useState('');
+  const { refresh } = useAuth();
+  const navigate = useNavigate();
 
   async function ensureCsrf() {
     await apiFetch('/api/v1/auth/csrf');
@@ -15,12 +19,18 @@ export function LoginForm() {
     e.preventDefault();
     setMessage('');
     await ensureCsrf();
+    const passwordHashClient = await sha256Hex(password);
     const res = await apiFetch('/api/v1/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password, deviceId }),
+      body: JSON.stringify({ email, passwordHashClient }),
     });
-    if (res.ok) setMessage('Logged in');
-    else setMessage(`Login failed: ${res.status}`);
+    if (res.ok) {
+      await refresh();
+      setMessage('Logged in');
+      navigate({ to: '/app' });
+    } else {
+      setMessage(`Login failed: ${res.status}`);
+    }
   }
 
   return (
@@ -40,14 +50,6 @@ export function LoginForm() {
           className="border px-2 py-1 w-full"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium">Device ID</label>
-        <input
-          className="border px-2 py-1 w-full"
-          value={deviceId}
-          onChange={(e) => setDeviceId(e.target.value)}
         />
       </div>
       <button type="submit" className="bg-black text-white px-3 py-1 rounded">

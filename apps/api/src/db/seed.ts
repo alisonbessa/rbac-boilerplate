@@ -11,7 +11,8 @@ async function ensureRoles() {
     .where(inArray(roles.name, names as unknown as string[]));
   const missing = names.filter((n) => !existing.find((r) => r.name === n));
   if (missing.length) {
-    await db.insert(roles).values(missing.map((name) => ({ name })) as any);
+    const insertRoles: Array<typeof roles.$inferInsert> = missing.map((name) => ({ name }));
+    await db.insert(roles).values(insertRoles);
   }
   const all = await db
     .select()
@@ -37,7 +38,8 @@ async function ensurePermissions() {
     .where(inArray(permissions.name, names as unknown as string[]));
   const missing = names.filter((n) => !existing.find((p) => p.name === n));
   if (missing.length) {
-    await db.insert(permissions).values(missing.map((name) => ({ name })) as any);
+    const insertPerms: Array<typeof permissions.$inferInsert> = missing.map((name) => ({ name }));
+    await db.insert(permissions).values(insertPerms);
   }
   const all = await db
     .select()
@@ -73,11 +75,38 @@ async function ensureRolePermissions(
   const existingKey = new Set(existing.map((r) => `${r.roleId}:${r.permissionId}`));
   const toInsert = entries.filter((e) => !existingKey.has(`${e.roleId}:${e.permissionId}`));
   if (toInsert.length) {
-    await db.insert(rolePermissions).values(toInsert as any);
+    const insertRolePerms: Array<typeof rolePermissions.$inferInsert> = toInsert;
+    await db.insert(rolePermissions).values(insertRolePerms);
   }
 }
 
 async function ensureUsers(roleIds: Record<'admin' | 'professional' | 'client', number>) {
+  // Default admin for local/dev testing
+  const defaultAdminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@example.com';
+  const defaultAdminPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'password123';
+  const [existingDefaultAdmin] = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, defaultAdminEmail))
+    .limit(1);
+  if (!existingDefaultAdmin) {
+    const adminHash = await hashPassword(defaultAdminPassword);
+    const ins = await db
+      .insert(users)
+      .values({ email: defaultAdminEmail, passwordHash: adminHash, name: 'Admin User' })
+      .returning({ id: users.id });
+    await db.insert(userRoles).values({ userId: ins[0]!.id, roleId: roleIds.admin });
+  } else {
+    const [ur] = await db
+      .select()
+      .from(userRoles)
+      .where(eq(userRoles.userId, existingDefaultAdmin.id))
+      .limit(1);
+    if (!ur) {
+      await db.insert(userRoles).values({ userId: existingDefaultAdmin.id, roleId: roleIds.admin });
+    }
+  }
+
   const adminEmails = (process.env.ADMIN_EMAILS || '')
     .split(',')
     .map((s) => s.trim())

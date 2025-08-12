@@ -10,17 +10,17 @@ import { env, cookieDefaults } from '../../env';
 
 const registerBody = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  passwordHashClient: z.string().min(64).max(128),
   name: z.string().min(1),
   roleInit: z.enum(['professional', 'client']).optional(),
 });
 
 const loginBody = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
-  deviceId: z.string(),
+  passwordHashClient: z.string().min(64).max(128),
+  deviceId: z.string().optional(),
 });
-const refreshBody = z.object({ deviceId: z.string() });
+const refreshBody = z.object({ deviceId: z.string().optional() });
 const revokeBody = z.object({ sessionId: z.number() });
 
 type UserRow = typeof users.$inferSelect;
@@ -39,14 +39,15 @@ function createRefreshToken() {
 export async function registerAuthRoutes(app: FastifyInstance) {
   app.post('/api/v1/auth/register', async (req, reply) => {
     const body = registerBody.parse(req.body);
-    const passwordHash = await hashPassword(body.password);
+    // Store Argon2id(pepper + clientPreHash)
+    const passwordHash = await hashPassword(body.passwordHashClient);
     const inserted = await db
       .insert(users)
       .values({ email: body.email, passwordHash, name: body.name })
       .returning({ id: users.id });
     const userId = inserted[0]!.id;
     const accessToken = signAccessToken(userId, body.email);
-    reply.setCookie('access_token', accessToken, cookieDefaults as any);
+    reply.setCookie('access_token', accessToken, cookieDefaults);
     return { ok: true };
   });
 
@@ -54,9 +55,11 @@ export async function registerAuthRoutes(app: FastifyInstance) {
     const body = loginBody.parse(req.body);
     const headerDeviceId = (req.headers['x-device-id'] as string | undefined) ?? body.deviceId;
     if (!headerDeviceId) {
-      const e: any = new Error('Missing deviceId (X-Device-Id header)');
-      e.statusCode = 400;
-      throw e;
+      const err: Error & { statusCode?: number } = new Error(
+        'Missing deviceId (X-Device-Id header)',
+      );
+      err.statusCode = 400;
+      throw err;
     }
     const foundUsers: UserRow[] = await db
       .select()
@@ -69,13 +72,14 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       err.statusCode = 401;
       throw err;
     }
-    const passwordHash = user.passwordHash;
-    if (!passwordHash) {
+    const storedArgonHash = user.passwordHash;
+    if (!storedArgonHash) {
       const err = new Error('Unauthorized') as Error & { statusCode?: number };
       err.statusCode = 401;
       throw err;
     }
-    const ok = await verifyPassword(body.password, passwordHash);
+    // Server treats client pre-hash as the secret input to Argon2id+pepper
+    const ok = await verifyPassword(body.passwordHashClient, storedArgonHash);
     if (!ok) {
       const err = new Error('Unauthorized') as Error & { statusCode?: number };
       err.statusCode = 401;
@@ -100,20 +104,20 @@ export async function registerAuthRoutes(app: FastifyInstance) {
     refreshBody.parse(req.body);
     const refresh = (req.cookies as Record<string, string | undefined>)?.refresh_token;
     if (!refresh) {
-      const err = new Error('Unauthorized') as Error & { statusCode?: number };
+      const err: Error & { statusCode?: number } = new Error('Unauthorized');
       err.statusCode = 401;
       throw err;
     }
     const headerDeviceId = req.headers['x-device-id'] as string | undefined;
     const didCookie = (req.cookies as Record<string, string | undefined>)?.did;
     if (!headerDeviceId || !didCookie) {
-      const err = new Error('Unauthorized') as Error & { statusCode?: number };
+      const err: Error & { statusCode?: number } = new Error('Unauthorized');
       err.statusCode = 401;
       throw err;
     }
     const unsign = req.unsignCookie(didCookie);
     if (!unsign.valid || unsign.value !== headerDeviceId) {
-      const err = new Error('Unauthorized') as Error & { statusCode?: number };
+      const err: Error & { statusCode?: number } = new Error('Unauthorized');
       err.statusCode = 401;
       throw err;
     }
@@ -130,7 +134,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       }
     }
     if (!matched) {
-      const err = new Error('Unauthorized') as Error & { statusCode?: number };
+      const err: Error & { statusCode?: number } = new Error('Unauthorized');
       err.statusCode = 401;
       throw err;
     }
