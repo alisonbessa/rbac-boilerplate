@@ -66,10 +66,10 @@ Dependências: M0
 
 Dependências: M1
 
-- [ ] Vincular refresh a `(userId + deviceId)`
-- [ ] Cookie httpOnly assinado `did` no login
-- [ ] Validar `X-Device-Id` vs cookie `did` e sessão (negar se divergente ou revogada)
-- [ ] Listar e revogar sessões por usuário
+- [x] Vincular refresh a `(userId + deviceId)`
+- [x] Cookie httpOnly assinado `did` no login
+- [x] Validar `X-Device-Id` vs cookie `did` e sessão (negar se divergente ou revogada)
+- [x] Listar e revogar sessões por usuário
 
 ## M3 — Frontend `apps/web`
 

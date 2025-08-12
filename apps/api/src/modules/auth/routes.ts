@@ -23,6 +23,9 @@ const loginBody = z.object({
 const refreshBody = z.object({ deviceId: z.string() });
 const revokeBody = z.object({ sessionId: z.number() });
 
+type UserRow = typeof users.$inferSelect;
+type SessionRow = typeof sessions.$inferSelect;
+
 function signAccessToken(userId: number, email: string) {
   return jwt.sign({ sub: userId, email }, env.AUTH_PEPPER, {
     expiresIn: Math.max(60, Number(env.ACCESS_TOKEN_TTL || 900)),
@@ -44,72 +47,108 @@ export async function registerAuthRoutes(app: FastifyInstance) {
     const userId = inserted[0]!.id;
     const accessToken = signAccessToken(userId, body.email);
     reply.setCookie('access_token', accessToken, cookieDefaults as any);
-    reply.setCookie('did', body.roleInit ?? '0', { ...cookieDefaults, httpOnly: true } as any);
     return { ok: true };
   });
 
   app.post('/api/v1/auth/login', async (req, reply) => {
     const body = loginBody.parse(req.body);
-    const [user] = (await db
+    const headerDeviceId = (req.headers['x-device-id'] as string | undefined) ?? body.deviceId;
+    if (!headerDeviceId) {
+      const e: any = new Error('Missing deviceId (X-Device-Id header)');
+      e.statusCode = 400;
+      throw e;
+    }
+    const foundUsers: UserRow[] = await db
       .select()
       .from(users)
       .where(eq(users.email, body.email))
-      .limit(1)) as any;
+      .limit(1);
+    const user = foundUsers[0];
     if (!user) {
-      const e: any = new Error('Unauthorized');
-      e.statusCode = 401;
-      throw e;
+      const err = new Error('Unauthorized') as Error & { statusCode?: number };
+      err.statusCode = 401;
+      throw err;
     }
-    const ok = await verifyPassword(body.password, user.passwordHash);
+    const passwordHash = user.passwordHash;
+    if (!passwordHash) {
+      const err = new Error('Unauthorized') as Error & { statusCode?: number };
+      err.statusCode = 401;
+      throw err;
+    }
+    const ok = await verifyPassword(body.password, passwordHash);
     if (!ok) {
-      const e: any = new Error('Unauthorized');
-      e.statusCode = 401;
-      throw e;
+      const err = new Error('Unauthorized') as Error & { statusCode?: number };
+      err.statusCode = 401;
+      throw err;
     }
     const refresh = createRefreshToken();
     await db.insert(sessions).values({
       userId: user.id,
-      deviceId: body.deviceId,
+      deviceId: headerDeviceId,
       refreshTokenHash: await hashPassword(refresh),
+      userAgent: (req.headers['user-agent'] as string) || null,
+      ip: (req.ip as string) || null,
     });
     const accessToken = signAccessToken(user.id, user.email);
-    reply.setCookie('access_token', accessToken, cookieDefaults as any);
-    reply.setCookie('refresh_token', refresh, { ...cookieDefaults, httpOnly: true } as any);
+    reply.setCookie('access_token', accessToken, cookieDefaults);
+    reply.setCookie('refresh_token', refresh, { ...cookieDefaults, httpOnly: true });
+    reply.setCookie('did', headerDeviceId, { ...cookieDefaults, signed: true });
     return { ok: true };
   });
 
   app.post('/api/v1/auth/refresh', async (req, reply) => {
-    const body = refreshBody.parse(req.body);
-    const refresh = (req.cookies as any)?.refresh_token as string | undefined;
+    refreshBody.parse(req.body);
+    const refresh = (req.cookies as Record<string, string | undefined>)?.refresh_token;
     if (!refresh) {
-      const e: any = new Error('Unauthorized');
-      e.statusCode = 401;
-      throw e;
+      const err = new Error('Unauthorized') as Error & { statusCode?: number };
+      err.statusCode = 401;
+      throw err;
     }
-    const [session] = (await db
+    const headerDeviceId = req.headers['x-device-id'] as string | undefined;
+    const didCookie = (req.cookies as Record<string, string | undefined>)?.did;
+    if (!headerDeviceId || !didCookie) {
+      const err = new Error('Unauthorized') as Error & { statusCode?: number };
+      err.statusCode = 401;
+      throw err;
+    }
+    const unsign = req.unsignCookie(didCookie);
+    if (!unsign.valid || unsign.value !== headerDeviceId) {
+      const err = new Error('Unauthorized') as Error & { statusCode?: number };
+      err.statusCode = 401;
+      throw err;
+    }
+    // find matching session by deviceId and refresh
+    const sessionsByDevice: SessionRow[] = await db
       .select()
       .from(sessions)
-      .where(eq(sessions.deviceId, body.deviceId))
-      .limit(1)) as any;
-    if (!session) {
-      const e: any = new Error('Unauthorized');
-      e.statusCode = 401;
-      throw e;
+      .where(eq(sessions.deviceId, headerDeviceId));
+    let matched: SessionRow | undefined;
+    for (const s of sessionsByDevice) {
+      if (await verifyPassword(refresh, s.refreshTokenHash)) {
+        matched = s;
+        break;
+      }
     }
-    const ok = await verifyPassword(refresh, session.refreshTokenHash);
-    if (!ok) {
-      const e: any = new Error('Unauthorized');
-      e.statusCode = 401;
-      throw e;
+    if (!matched) {
+      const err = new Error('Unauthorized') as Error & { statusCode?: number };
+      err.statusCode = 401;
+      throw err;
     }
-    const accessToken = signAccessToken(session.userId, '');
-    reply.setCookie('access_token', accessToken, cookieDefaults as any);
+    // rotate refresh
+    const newRefresh = createRefreshToken();
+    await db
+      .update(sessions)
+      .set({ refreshTokenHash: await hashPassword(newRefresh) })
+      .where(eq(sessions.id, matched.id));
+    const accessToken = signAccessToken(matched.userId, '');
+    reply.setCookie('access_token', accessToken, cookieDefaults);
+    reply.setCookie('refresh_token', newRefresh, { ...cookieDefaults, httpOnly: true });
     return { ok: true };
   });
 
   app.post('/api/v1/auth/logout', async (req, reply) => {
-    reply.clearCookie('access_token', cookieDefaults as any);
-    reply.clearCookie('refresh_token', cookieDefaults as any);
+    reply.clearCookie('access_token', cookieDefaults);
+    reply.clearCookie('refresh_token', cookieDefaults);
     return { ok: true };
   });
 
@@ -118,7 +157,10 @@ export async function registerAuthRoutes(app: FastifyInstance) {
   });
 
   app.get('/api/v1/auth/sessions', { preHandler: app.authenticate }, async (req) => {
-    const rows = (await db.select().from(sessions).where(eq(sessions.userId, req.user!.id))) as any;
+    const rows: SessionRow[] = await db
+      .select()
+      .from(sessions)
+      .where(eq(sessions.userId, req.user!.id));
     return { sessions: rows };
   });
 
