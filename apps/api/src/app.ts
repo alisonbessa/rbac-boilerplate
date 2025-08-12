@@ -11,6 +11,7 @@ import flagsPlugin from './plugins/flags';
 import emailPlugin from './plugins/email';
 import { registerAuthRoutes } from './modules/auth/routes';
 import { registerAdminRoutes } from './modules/admin/routes';
+import { registerFeatureRoutes } from './modules/feature/routes';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -78,6 +79,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await registerAuthRoutes(app);
   await registerAdminRoutes(app);
+  await registerFeatureRoutes(app);
 
   return app;
 }

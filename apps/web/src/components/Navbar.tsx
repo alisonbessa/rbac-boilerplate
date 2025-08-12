@@ -23,6 +23,9 @@ export function Navbar() {
             <Link to="/admin" className="hover:underline">
               Admin
             </Link>
+            <Link to="/demo" className="hover:underline">
+              Demo
+            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-2">

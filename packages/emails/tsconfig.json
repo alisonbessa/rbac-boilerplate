@@ -2,6 +2,7 @@
   "extends": "../config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
+    "types": ["node"],
     "paths": {
       "@rbac-boilerplate/config": ["../config/src"]
     }

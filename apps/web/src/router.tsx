@@ -12,6 +12,7 @@ import LoginPage from './pages/Login';
 import AppDashboard from './pages/AppDashboard';
 import AdminPage from './pages/Admin';
 import NotFoundPage from './pages/NotFound';
+import FeatureDemoPage from './pages/FeatureDemo';
 
 function RootLayout() {
   return (
@@ -45,6 +46,11 @@ const adminRoute = createRoute({
   path: '/admin',
   component: AdminPage,
 });
+const featureDemoRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/demo',
+  component: FeatureDemoPage,
+});
 const notFoundRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '*',
@@ -56,6 +62,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   appRoute,
   adminRoute,
+  featureDemoRoute,
   notFoundRoute,
 ]);
 
