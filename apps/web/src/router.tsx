@@ -30,11 +30,13 @@ function HomePage() {
   );
 }
 
+import { LoginForm } from './features/auth/Login';
+
 function LoginPage() {
   return (
     <div>
       <h2>Login</h2>
-      <p>Placeholder da página de login.</p>
+      <LoginForm />
     </div>
   );
 }
