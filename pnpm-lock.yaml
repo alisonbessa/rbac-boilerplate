@@ -47,6 +47,9 @@ importers:
       '@types/node':
         specifier: '20'
         version: 20.19.10
+      '@types/nodemailer':
+        specifier: ^6.4.15
+        version: 6.4.17
       '@types/pg':
         specifier: ^8.15.5
         version: 8.15.5

@@ -34,6 +34,7 @@
     "@commitlint/config-conventional": "^19.2.2",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "20",
+    "@types/nodemailer": "^6.4.15",
     "@types/pg": "^8.15.5",
     "@typescript-eslint/eslint-plugin": "^7.16.1",
     "@typescript-eslint/parser": "^7.16.1",
