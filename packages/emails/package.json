@@ -1,5 +1,5 @@
 {
-  "name": "@rbac-boilerplate/config",
+  "name": "@rbac-boilerplate/emails",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -7,9 +7,7 @@
   "types": "./src/index.ts",
   "files": [
     "dist",
-    "tsconfig.base.json",
-    "eslint",
-    "prettier"
+    "templates"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -18,6 +16,9 @@
     "test": "echo no-tests"
   },
   "dependencies": {
-    "zod": "^3.23.8"
+    "@rbac-boilerplate/config": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
   }
 }

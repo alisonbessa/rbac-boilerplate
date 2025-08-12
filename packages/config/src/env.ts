@@ -41,6 +41,8 @@ export const ServerEnvSchema = z.object({
 
   RESEND_API_KEY: z.string().optional(),
   MAIL_FROM: z.string().email().optional(),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().optional(),
 
   S3_ENDPOINT: z.string().optional(),
   S3_REGION: z.string().optional(),

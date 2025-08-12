@@ -75,27 +75,33 @@ Dependências: M1
 
 Dependências: M1 e M2
 
-- [ ] Vite + React + TypeScript (strict), TanStack Router + Query
+- [x] Vite + React + TypeScript (strict), TanStack Router
+- [ ] TanStack Query (a ser integrado no M3.1)
 - [ ] UI base: shadcn/ui (Button, Input, Label, Card, Tabs, Dialog, DropdownMenu, Toast, Skeleton, DataTable)
 - [ ] Form kit com RHF + ZodResolver (`<Form>`, `<FormField>`, `<FormMessage>`)
-- [ ] Rotas/Páginas
-  - [ ] `/login` com Tabs “Professional” / “Client” (define `roleInit`)
-  - [ ] `/app` (área autenticada)
-  - [ ] `/admin` (layout isolado com guard duplo: allowlist + permissão)
-- [ ] `apiClient.ts`
-  - [ ] Interceptor: injeta `X-Device-Id`, trata 401/419 e executa refresh seguro
-  - [ ] `useAuth()` com estado e permissões
+- [x] Rotas/Páginas
+  - [x] `/` Landing (mock)
+  - [x] `/login` com Login e Register
+  - [x] `/app` (área autenticada)
+  - [x] `/admin` (guard: permissão `admin.panel` + allowlist via backend)
+  - [x] `*` NotFound
+- [x] `apiClient.ts`
+  - [x] Interceptor: injeta `X-Device-Id`, trata 401/419 e executa refresh seguro
+  - [x] `useAuth()` com estado e permissões
 
 ## M4 — Feature Flags & E-mails
 
 Dependências: M1
 
-- [ ] Adapter de flags (interface comum `getFlag(key, ctx?)`)
-  - [ ] Provider default: Flagsmith; preparar Statsig/Unleash via ENV
-  - [ ] Cache curto (60s) + fallback default
-- [ ] E-mails (Resend em prod, Mailpit em dev)
-  - [ ] Adapter `sendEmail({ to, template, variables })`
-  - [ ] Templates em `packages/emails` (ex.: reset de senha; login de novo dispositivo)
+- [x] Adapter de flags (interface comum `getFlag(key, ctx?)`)
+  - [x] Provider default: stub de Flagsmith
+  - [x] Cache curto (60s) + fallback default
+- [x] E-mails (esqueleto)
+  - [x] Adapter `sendEmail({ to, template, variables })` (dev: Mailpit stub)
+  - [x] Templates em `packages/emails` (ex.: reset de senha; login de novo dispositivo) — pendente conteúdo real
+  - [x] Wiring no Fastify (`app.emails`)
+  - [x] Wiring no Fastify (`app.flags`)
+- [ ] Integração real com provider (Flagsmith/Resend) via ENV
 
 ## M5 — Storage S3-compatível
 

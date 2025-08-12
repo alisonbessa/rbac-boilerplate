@@ -1,4 +1,4 @@
-import Fastify, { FastifyInstance } from 'fastify';
+import Fastify, { FastifyInstance, type FastifyRequest } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import cookie from '@fastify/cookie';
@@ -7,6 +7,8 @@ import { Registry, collectDefaultMetrics, Counter, Histogram } from 'prom-client
 import { env } from './env';
 import authPlugin from './plugins/auth';
 import csrfPlugin from './plugins/csrf';
+import flagsPlugin from './plugins/flags';
+import emailPlugin from './plugins/email';
 import { registerAuthRoutes } from './modules/auth/routes';
 import { registerAdminRoutes } from './modules/admin/routes';
 
@@ -26,12 +28,16 @@ export async function buildApp(): Promise<FastifyInstance> {
     },
   });
 
+  const requestStartTimes = new WeakMap<FastifyRequest, bigint>();
+
   await app.register(cors, { origin: env.WEB_ORIGIN, credentials: true });
   await app.register(helmet);
   await app.register(cookie, { secret: process.env.AUTH_PEPPER ?? undefined });
   await app.register(rateLimit, { max: 100, timeWindow: '1 minute' });
   await app.register(authPlugin);
   await app.register(csrfPlugin);
+  await app.register(flagsPlugin);
+  await app.register(emailPlugin);
 
   const registry = new Registry();
   collectDefaultMetrics({ register: registry, prefix: 'api_' });
@@ -50,14 +56,14 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   app.addHook('onRequest', async (req) => {
-    (req as any)._start = process.hrtime.bigint();
+    requestStartTimes.set(req, process.hrtime.bigint());
   });
 
   app.addHook('onResponse', async (req, reply) => {
     const route = req.routeOptions?.url ?? req.url;
     const status = String(reply.statusCode);
     httpRequestCounter.labels(req.method, route, status).inc();
-    const start = (req as any)._start as bigint | undefined;
+    const start = requestStartTimes.get(req);
     const diffNs = start ? Number(process.hrtime.bigint() - start) : 0;
     const latencyMs = diffNs / 1e6;
     httpLatency.labels(req.method, route, status).observe(latencyMs);

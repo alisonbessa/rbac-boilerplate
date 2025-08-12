@@ -113,6 +113,12 @@ importers:
       '@rbac-boilerplate/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@rbac-boilerplate/emails':
+        specifier: workspace:*
+        version: link:../../packages/emails
+      '@rbac-boilerplate/flags':
+        specifier: workspace:*
+        version: link:../../packages/flags
       argon2:
         specifier: ^0.41.1
         version: 0.41.1
@@ -196,6 +202,26 @@ importers:
       zod:
         specifier: ^3.23.8
         version: 3.25.76
+
+  packages/emails:
+    dependencies:
+      '@rbac-boilerplate/config':
+        specifier: workspace:*
+        version: link:../config
+    devDependencies:
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.2
+
+  packages/flags:
+    dependencies:
+      '@rbac-boilerplate/config':
+        specifier: workspace:*
+        version: link:../config
+    devDependencies:
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.2
 
 packages:
   '@alloc/quick-lru@5.2.0':

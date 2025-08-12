@@ -3,7 +3,11 @@
   "compilerOptions": {
     "types": ["node"],
     "baseUrl": ".",
-    "paths": {},
+    "paths": {
+      "@rbac-boilerplate/flags": ["../../packages/flags/src"],
+      "@rbac-boilerplate/emails": ["../../packages/emails/src"],
+      "@rbac-boilerplate/config": ["../../packages/config/src"]
+    },
     "outDir": "dist"
   },
   "include": ["src"]
