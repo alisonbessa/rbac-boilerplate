@@ -15,11 +15,17 @@ const registerBody = z.object({
   roleInit: z.enum(['professional', 'client']).optional(),
 });
 
-const loginBody = z.object({
-  email: z.string().email(),
-  passwordHashClient: z.string().min(64).max(128),
-  deviceId: z.string().optional(),
-});
+const loginBody = z
+  .object({
+    email: z.string().email(),
+    passwordHashClient: z.string().min(64).max(128).optional(),
+    password: z.string().min(1).optional(),
+    deviceId: z.string().optional(),
+  })
+  .refine((v) => Boolean(v.passwordHashClient || v.password), {
+    message: 'passwordHashClient or password is required',
+    path: ['passwordHashClient'],
+  });
 const refreshBody = z.object({ deviceId: z.string().optional() });
 const revokeBody = z.object({ sessionId: z.number() });
 
@@ -61,6 +67,16 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       err.statusCode = 400;
       throw err;
     }
+    // Accept either client-provided pre-hash, or plaintext (DEV fallback only)
+    let clientPreHash: string | undefined = body.passwordHashClient;
+    if (!clientPreHash && body.password && env.NODE_ENV !== 'production') {
+      clientPreHash = crypto.createHash('sha256').update(body.password, 'utf8').digest('hex');
+    }
+    if (!clientPreHash) {
+      const err: Error & { statusCode?: number } = new Error('passwordHashClient is required');
+      err.statusCode = 400;
+      throw err;
+    }
     const foundUsers: UserRow[] = await db
       .select()
       .from(users)
@@ -79,7 +95,7 @@ export async function registerAuthRoutes(app: FastifyInstance) {
       throw err;
     }
     // Server treats client pre-hash as the secret input to Argon2id+pepper
-    const ok = await verifyPassword(body.passwordHashClient, storedArgonHash);
+    const ok = await verifyPassword(clientPreHash, storedArgonHash);
     if (!ok) {
       const err = new Error('Unauthorized') as Error & { statusCode?: number };
       err.statusCode = 401;
