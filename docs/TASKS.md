@@ -38,29 +38,29 @@
 
 Dependências: M0
 
-- [ ] Configurar Fastify (Node 20+, Pino, CORS restrito, headers de segurança)
-- [ ] Drizzle ORM + Postgres
-  - [ ] Schemas e migrations: `users`, `roles`, `permissions`, `role_permissions`, `user_roles`, `sessions`, `audit_logs`, `user_credentials`
-  - [ ] Seeds: roles (`admin`, `professional`, `client`), permissions (`user.read`, `user.write`, `profile.read`, `profile.write`, `admin.panel`), `ADMIN_EMAILS` para admins
-- [ ] Segurança
-  - [ ] Senha Argon2id (memoryCost=128MiB, timeCost=3, parallelism=1, salt=16, hash=32) + pepper (`AUTH_PEPPER`)
-  - [ ] Cookies httpOnly, Secure, SameSite=strict; domínio por ENV
-  - [ ] CSRF (double submit) para métodos state-changing
-  - [ ] Rate limit (login e refresh)
-  - [ ] Mascarar PII em logs sensíveis
-- [ ] RBAC
-  - [ ] Middleware `authorize("permission")` e helper `authorizeAny([...])`
-  - [ ] Guard para `/api/v1/admin/*` exigindo `admin.panel` + allowlist `ADMIN_EMAILS`
-- [ ] Rotas de Auth
-  - [ ] `POST /api/v1/auth/register` `{ email, password, name, roleInit }`
-  - [ ] `POST /api/v1/auth/login` `{ email, password, deviceId }`
-  - [ ] `POST /api/v1/auth/refresh` `{ deviceId }`
-  - [ ] `POST /api/v1/auth/logout` `{ deviceId }`
-  - [ ] `GET /api/v1/auth/me`
-  - [ ] `GET /api/v1/auth/sessions`
-  - [ ] `POST /api/v1/auth/revoke-session` `{ sessionId }`
-- [ ] Observabilidade mínima
-  - [ ] Endpoints `/healthz`, `/readyz`, `/metrics` com métricas HTTP básicas
+- [x] Configurar Fastify (Node 20+, Pino, CORS restrito, headers de segurança)
+- [x] Drizzle ORM + Postgres
+  - [x] Schemas e migrations: `users`, `roles`, `permissions`, `role_permissions`, `user_roles`, `sessions`, `audit_logs`, `user_credentials`
+  - [x] Seeds: roles (`admin`, `professional`, `client`), permissions (`user.read`, `user.write`, `profile.read`, `profile.write`, `admin.panel`), `ADMIN_EMAILS` para admins
+- [x] Segurança
+  - [x] Senha Argon2id (memoryCost=128MiB, timeCost=3, parallelism=1, salt=16, hash=32) + pepper (`AUTH_PEPPER`)
+  - [x] Cookies httpOnly, Secure, SameSite=strict; domínio por ENV
+  - [x] CSRF (double submit) para métodos state-changing
+  - [x] Rate limit (login e refresh)
+  - [x] Mascarar PII em logs sensíveis
+- [x] RBAC
+  - [x] Middleware `authorize("permission")` e helper `authorizeAny([...])`
+  - [x] Guard para `/api/v1/admin/*` exigindo `admin.panel` + allowlist `ADMIN_EMAILS`
+- [x] Rotas de Auth
+  - [x] `POST /api/v1/auth/register` `{ email, password, name, roleInit }`
+  - [x] `POST /api/v1/auth/login` `{ email, password, deviceId }`
+  - [x] `POST /api/v1/auth/refresh` `{ deviceId }`
+  - [x] `POST /api/v1/auth/logout` `{ deviceId }`
+  - [x] `GET /api/v1/auth/me`
+  - [x] `GET /api/v1/auth/sessions`
+  - [x] `POST /api/v1/auth/revoke-session` `{ sessionId }`
+- [x] Observabilidade mínima
+  - [x] Endpoints `/healthz`, `/readyz`, `/metrics` com métricas HTTP básicas
 
 ## M2 — Fingerprint de Dispositivo & Sessões
 
