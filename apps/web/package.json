@@ -2,11 +2,23 @@
   "name": "@rbac-boilerplate/web",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "echo web-dev",
-    "build": "echo web-build",
-    "typecheck": "tsc -p tsconfig.json --noEmit || true",
-    "lint": "eslint src --ext .ts,.tsx || true",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src --ext .ts,.tsx",
     "test": "echo web-test"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.7"
   }
 }
