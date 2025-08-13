@@ -1,6 +1,6 @@
 # RBAC Boilerplate Monorepo
 
-Monorepo with pnpm + Turborepo, Fastify API with Drizzle ORM (Postgres), and a shared config package for environment validation. Frontend scaffold lives under `apps/web` and will be initialized in Milestone M3.
+Monorepo with pnpm + Turborepo, Fastify API with Drizzle ORM (Postgres), and a shared config package for environment validation. Web app lives under `apps/web` (React + Vite + Tailwind).
 
 ## Requirements
 
@@ -11,7 +11,7 @@ Monorepo with pnpm + Turborepo, Fastify API with Drizzle ORM (Postgres), and a s
 ## Project structure
 
 - `apps/api` — Fastify + Drizzle ORM (Postgres), Auth, RBAC, CSRF, metrics/health endpoints
-- `apps/web` — Frontend scaffold (Vite to be added on M3)
+- `apps/web` — React + Vite + TypeScript (router, blog demo, forms), Tailwind
 - `packages/config` — Shared ESLint/Prettier/TS config and ENV validation (Zod)
 - `infra/docker-compose.yml` — Postgres, Redis, Mailpit, MinIO
 
@@ -23,11 +23,36 @@ Monorepo with pnpm + Turborepo, Fastify API with Drizzle ORM (Postgres), and a s
 pnpm install
 ```
 
-2. Configure environment variables
+2. Configure environment variables (create a `.env` at the repo root)
 
-```bash
-cp .env.example .env
-# Edit .env as needed (APP_URL, API_URL, DATABASE_URL, ADMIN_EMAILS, etc.)
+Minimal local example:
+
+```
+# Core
+APP_URL=http://localhost:5173
+API_URL=http://localhost:3000
+WEB_ORIGIN=http://localhost:5173
+NODE_ENV=development
+
+# Auth/Security
+AUTH_PEPPER=dev-secret-change-me
+ACCESS_TOKEN_TTL=900
+REFRESH_TOKEN_TTL=1209600
+COOKIE_DOMAIN=localhost
+
+# Database
+DATABASE_URL=postgres://app:app@localhost:5432/app
+DB_SCHEMA=public
+
+# Optional (admin allowlist, emails, storage)
+ADMIN_EMAILS=admin@example.com
+MAIL_FROM=rbac@example.com
+SMTP_HOST=localhost
+SMTP_PORT=1025
+S3_ENDPOINT=http://localhost:9000
+S3_FORCE_PATH_STYLE=true
+S3_BUCKET_PRIVATE=dev-private
+S3_BUCKET_PUBLIC=dev-public
 ```
 
 3. Start local services (Postgres, Redis, Mailpit, MinIO)
@@ -49,38 +74,50 @@ pnpm --filter @rbac-boilerplate/api db:seed
 pnpm --filter @rbac-boilerplate/api dev
 ```
 
+6. Run the Web (optional)
+
+```bash
+pnpm --filter @rbac-boilerplate/web dev
+```
+
 ## Quick checks
 
 - Health and metrics:
   - `GET http://localhost:3000/healthz` → `{ "status": "ok" }`
   - `GET http://localhost:3000/readyz` → `{ "status": "ready" }`
   - `GET http://localhost:3000/metrics` → Prometheus metrics
+  - `GET http://localhost:3000/api/v1/auth/csrf` → returns `{ token }` and sets `csrf` cookie (required for state-changing requests)
 
 - Auth (curl examples):
 
 ```bash
+# Get CSRF token (saves cookie). Copy the `token` value from the JSON response
+curl -i -c cookies.txt http://localhost:3000/api/v1/auth/csrf
+CSRF=PASTE_TOKEN_HERE
+
 # Register user (roleInit can be "professional" | "client")
-curl -i -X POST http://localhost:3000/api/v1/auth/register \
+curl -i -b cookies.txt -c cookies.txt -X POST http://localhost:3000/api/v1/auth/register \
   -H 'Content-Type: application/json' \
+  -H "x-csrf-token: $CSRF" \
   -d '{"email":"user@example.com","password":"password123","name":"User","roleInit":"client"}'
 
 # Login (sets access_token / refresh_token cookies)
-curl -i -X POST http://localhost:3000/api/v1/auth/login \
+curl -i -b cookies.txt -c cookies.txt -X POST http://localhost:3000/api/v1/auth/login \
   -H 'Content-Type: application/json' \
+  -H "x-csrf-token: $CSRF" \
   -d '{"email":"pro@example.com","password":"password123","deviceId":"device-1"}'
 
 # Current user (requires cookies returned by login)
-curl -i http://localhost:3000/api/v1/auth/me \
+curl -i -b cookies.txt http://localhost:3000/api/v1/auth/me \
   -H 'Cookie: access_token=...; refresh_token=...'
 
 # Admin ping (requires ADMIN_EMAILS allowlist + permission admin.panel)
-curl -i http://localhost:3000/api/v1/admin/ping \
-  -H 'Cookie: access_token=...'
+curl -i -b cookies.txt http://localhost:3000/api/v1/admin/ping
 ```
 
 ## Useful scripts
 
-- `pnpm dev:all` — run dev tasks in parallel (once web is configured)
+- `pnpm dev:all` — run API and Web dev servers in parallel
 - `pnpm lint` — lint
 - `pnpm typecheck` — type checking
 - `pnpm build` — build all packages
@@ -89,5 +126,5 @@ curl -i http://localhost:3000/api/v1/admin/ping \
 
 ## Notes
 
-- Frontend (`apps/web`) will be initialized in M3.
-- ENV validation is done via `packages/config` (Zod). The API consumes `COOKIE_DOMAIN`, `AUTH_PEPPER`, `ACCESS_TOKEN_TTL`, `REFRESH_TOKEN_TTL`, `WEB_ORIGIN`, etc.
+- Frontend (`apps/web`) is available (Vite/Tailwind). Default dev ports: API `:3000`, Web `:5173`.
+- ENV validation is done via `packages/config` (Zod). The API consumes `APP_URL`, `API_URL`, `WEB_ORIGIN`, `DATABASE_URL`, `COOKIE_DOMAIN`, `AUTH_PEPPER`, `ACCESS_TOKEN_TTL`, `REFRESH_TOKEN_TTL`, etc. See `docs/GETTING_STARTED.md` for the full list.

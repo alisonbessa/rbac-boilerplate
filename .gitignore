@@ -7,5 +7,3 @@ coverage
 *.log
 .env
 .env.local
-# keep docs tracked
-# docs/
