@@ -6,6 +6,7 @@ import {
   integer,
   primaryKey,
   uniqueIndex,
+  pgEnum,
 } from 'drizzle-orm/pg-core';
 
 export const users = pgTable(
@@ -88,3 +89,21 @@ export const userCredentials = pgTable('user_credentials', {
   emailVerified: integer('email_verified'),
   createdAt: timestamp('created_at', { withTimezone: false }).defaultNow(),
 });
+
+// Blog
+export const postStatusEnum = pgEnum('post_status', ['draft', 'published']);
+
+export const blogPosts = pgTable(
+  'blog_posts',
+  {
+    id: serial('id').primaryKey(),
+    slug: text('slug').notNull(),
+    title: text('title').notNull(),
+    html: text('html').notNull(),
+    status: postStatusEnum('status').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: false }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: false }).defaultNow(),
+    publishedAt: timestamp('published_at', { withTimezone: false }),
+  },
+  (t) => ({ blogSlugUnique: uniqueIndex('blog_posts_slug_unique').on(t.slug) }),
+);

@@ -14,6 +14,7 @@ import { registerAdminRoutes } from './modules/admin/routes';
 import { registerFeatureRoutes } from './modules/feature/routes';
 import storagePlugin from './plugins/storage';
 import { registerStorageRoutes } from './modules/storage/routes';
+import { registerBlogRoutes } from './modules/blog/routes';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -84,6 +85,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await registerAdminRoutes(app);
   await registerFeatureRoutes(app);
   await registerStorageRoutes(app);
+  await registerBlogRoutes(app);
 
   return app;
 }
