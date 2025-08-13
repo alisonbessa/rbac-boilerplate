@@ -17,7 +17,7 @@ const registerBody = z.object({
 
 const loginBody = z
   .object({
-    email: z.string().email(),
+    email: z.string().trim().email(),
     passwordHashClient: z.string().min(64).max(128).optional(),
     password: z.string().min(1).optional(),
     deviceId: z.string().optional(),
@@ -58,7 +58,18 @@ export async function registerAuthRoutes(app: FastifyInstance) {
   });
 
   app.post('/api/v1/auth/login', async (req, reply) => {
-    const body = loginBody.parse(req.body);
+    const parsed = loginBody.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({
+        code: 'INVALID_BODY',
+        issues: parsed.error.issues.map((i) => ({
+          path: i.path.join('.'),
+          code: i.code,
+          message: i.message,
+        })),
+      });
+    }
+    const body = parsed.data;
     const headerDeviceId = (req.headers['x-device-id'] as string | undefined) ?? body.deviceId;
     if (!headerDeviceId) {
       const err: Error & { statusCode?: number } = new Error(

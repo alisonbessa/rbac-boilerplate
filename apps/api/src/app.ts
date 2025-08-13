@@ -12,6 +12,8 @@ import emailPlugin from './plugins/email';
 import { registerAuthRoutes } from './modules/auth/routes';
 import { registerAdminRoutes } from './modules/admin/routes';
 import { registerFeatureRoutes } from './modules/feature/routes';
+import storagePlugin from './plugins/storage';
+import { registerStorageRoutes } from './modules/storage/routes';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -39,6 +41,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(csrfPlugin);
   await app.register(flagsPlugin);
   await app.register(emailPlugin);
+  await app.register(storagePlugin);
 
   const registry = new Registry();
   collectDefaultMetrics({ register: registry, prefix: 'api_' });
@@ -80,6 +83,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await registerAuthRoutes(app);
   await registerAdminRoutes(app);
   await registerFeatureRoutes(app);
+  await registerStorageRoutes(app);
 
   return app;
 }

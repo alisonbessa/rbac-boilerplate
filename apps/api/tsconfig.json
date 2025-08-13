@@ -6,7 +6,8 @@
     "paths": {
       "@rbac-boilerplate/flags": ["../../packages/flags/src"],
       "@rbac-boilerplate/emails": ["../../packages/emails/src"],
-      "@rbac-boilerplate/config": ["../../packages/config/src"]
+      "@rbac-boilerplate/config": ["../../packages/config/src"],
+      "@rbac-boilerplate/storage": ["../../packages/storage/src"]
     },
     "outDir": "dist"
   },
