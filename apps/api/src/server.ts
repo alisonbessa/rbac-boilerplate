@@ -1,3 +1,5 @@
+// Tracing setup (no-op unless OTEL_TRACES_ENABLED=true)
+import './tracing';
 import { buildApp } from './app';
 
 async function main() {

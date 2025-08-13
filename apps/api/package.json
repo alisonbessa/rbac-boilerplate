@@ -16,6 +16,11 @@
     "db:seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
+    "@opentelemetry/auto-instrumentations-node": "^0.53.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.53.1",
+    "@opentelemetry/resources": "^1.27.0",
+    "@opentelemetry/sdk-node": "^0.53.1",
+    "@opentelemetry/semantic-conventions": "^1.27.0",
     "@fastify/cookie": "^10.0.1",
     "@fastify/cors": "^10.1.0",
     "@fastify/error": "^3.4.1",

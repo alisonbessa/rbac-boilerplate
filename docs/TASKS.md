@@ -101,7 +101,7 @@ Dependências: M1
   - [x] Templates em `packages/emails` (ex.: reset de senha; login de novo dispositivo) — pendente conteúdo real
   - [x] Wiring no Fastify (`app.emails`)
   - [x] Wiring no Fastify (`app.flags`)
-- [ ] Integração real com provider (Flagsmith/Resend) via ENV
+- [x] Integração real com provider (Flagsmith/Resend) via ENV
 
 ## M5 — Storage S3-compatível
 

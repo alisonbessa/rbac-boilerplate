@@ -18,7 +18,9 @@
     "test": "turbo run test",
     "e2e": "turbo run e2e",
     "prepare": "husky install",
-    "commitlint": "commitlint --config .commitlintrc.cjs"
+    "commitlint": "commitlint --config .commitlintrc.cjs",
+    "gen:resource": "tsx scripts/gen/resource.ts",
+    "gen:feature": "tsx scripts/gen/feature.ts"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
